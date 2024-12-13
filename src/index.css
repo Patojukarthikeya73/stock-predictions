@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .scale-102 {
+    transform: scale(1.02);
+  }
+}
+
+body {
+  @apply bg-gray-100;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
