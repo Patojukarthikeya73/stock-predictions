@@ -1,0 +1,32 @@
+.watchlist {
+    padding: 20px;
+    background-color: var(--background-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+  }
+  
+  .watchlist h1 {
+    margin-bottom: 20px;
+  }
+  
+  .watchlist ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .watchlist li {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    background-color: white;
+    border-radius: var(--border-radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--box-shadow);
+  }
+  
+  .watchlist li:hover {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  

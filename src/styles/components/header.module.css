@@ -1,0 +1,19 @@
+.header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--box-shadow);
+  }
+  
+  .header a {
+    color: white;
+    margin-right: 15px;
+  }
+  
+  .header a:hover {
+    text-decoration: underline;
+  }
+  

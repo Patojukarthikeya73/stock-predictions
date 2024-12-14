@@ -1,24 +1,45 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './services/firebaseConfig'; // Firebase configuration
+import Navbar from './components/Navbar'; // Navbar component
 import { LineChart } from 'lucide-react';
-import { StockQuoteCard } from './components/StockQuote';
-import { NewsCard } from './components/NewsCard';
-import { SearchBar } from './components/SearchBar';
-import { MarketOverview } from './components/MarketOverview';
-import { getStockQuote, getMarketNews } from './utils/api';
-import type { StockQuote, NewsItem } from './types/finnhub';
+import { StockQuoteCard } from './components/StockQuote'; // StockQuote component
+import { NewsCard } from './components/NewsCard'; // NewsCard component
+import { SearchBar } from './components/SearchBar'; // SearchBar component
+import { MarketOverview } from './components/MarketOverview'; // MarketOverview component
+import { getStockQuote, getMarketNews } from './utils/api'; // API utility functions
+import { StockQuote, NewsItem } from './types/finnhub'; // Types for StockQuote and NewsItem
 
+// Default stocks for the watchlist
 const DEFAULT_STOCKS = ['AAPL', 'GOOGL', 'MSFT', 'AMZN'];
 
 function App() {
-  const [watchedStocks, setWatchedStocks] = useState<string[]>(DEFAULT_STOCKS);
-  const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);  // Store Firebase user
+  const [watchedStocks, setWatchedStocks] = useState<string[]>(DEFAULT_STOCKS);  // Watched stocks
+  const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});  // Stock quotes
+  const [news, setNews] = useState<NewsItem[]>([]);  // Market news
+  const [loading, setLoading] = useState(true);  // Loading state
+  const [error, setError] = useState<string | null>(null);  // Error state
 
+  // Listen for Firebase auth state changes and update user state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);  // Update user state when authenticated
+      } else {
+        setUser(null);  // If not authenticated, set user to null
+      }
+    });
+
+    // Cleanup the subscription when the component unmounts
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch stock quotes and news for watched stocks every 10 seconds
   useEffect(() => {
     async function fetchData() {
       try {
+        // Fetch stock quotes for the watched stocks
         const quotesData = await Promise.all(
           watchedStocks.map(async (symbol) => {
             const quote = await getStockQuote(symbol);
@@ -27,8 +48,9 @@ function App() {
         );
         setQuotes(Object.fromEntries(quotesData));
 
+        // Fetch latest market news
         const newsData = await getMarketNews();
-        setNews(newsData.slice(0, 6));
+        setNews(newsData.slice(0, 6)); // Limit to first 6 news items
         setError(null);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -39,10 +61,11 @@ function App() {
     }
 
     fetchData();
-    const interval = setInterval(fetchData, 10000);
-    return () => clearInterval(interval);
+    const interval = setInterval(fetchData, 10000); // Fetch every 10 seconds
+    return () => clearInterval(interval); // Cleanup interval on unmount
   }, [watchedStocks]);
 
+  // Handle adding a stock to the watchlist
   const handleSearch = async (symbol: string) => {
     if (watchedStocks.includes(symbol)) {
       setError('This stock is already in your watchlist');
@@ -65,6 +88,7 @@ function App() {
     }
   };
 
+  // Handle removing a stock from the watchlist
   const removeStock = (symbolToRemove: string) => {
     if (watchedStocks.length <= 1) {
       setError('You must keep at least one stock in your watchlist');
@@ -76,6 +100,7 @@ function App() {
     setQuotes(newQuotes);
   };
 
+  // Loading state UI
   if (loading && Object.keys(quotes).length === 0) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -88,6 +113,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Pass user as prop to Navbar */}
+      <Navbar user={user} onLogin={setUser} />  
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         <header className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -121,7 +149,7 @@ function App() {
                   key={symbol}
                   symbol={symbol}
                   quote={quotes[symbol]}
-                  onRemove={() => removeStock(symbol)}
+                  onRemove={() => removeStock(symbol)} // Pass removeStock function
                 />
               ))}
             </div>
